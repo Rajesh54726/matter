@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Characteristics of Matter Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0fdf4; /* Light green tint */
+        }
+        canvas {
+            touch-action: none; /* Prevent scrolling when touching canvas */
+            background: #ffffff;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+            border-radius: 12px;
+        }
+        .control-btn {
+            transition: all 0.2s;
+        }
+        .control-btn.active {
+            background-color: #16a34a; /* Green-600 */
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        /* Custom slider styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #dc2626; /* Red-600 */
+            cursor: pointer;
+            margin-top: -8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e5e7eb;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm p-4 sticky top-0 z-10">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-green-700">Particle Laboratory</h1>
+            <div class="text-xs md:text-sm text-gray-500">Class 9 Science Concepts</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-4 max-w-4xl mx-auto w-full flex flex-col md:flex-row gap-6">
+        
+        <!-- Left Column: Simulation -->
+        <div class="flex-1 flex flex-col gap-4">
+            <div class="relative w-full aspect-square md:aspect-video bg-white rounded-xl shadow-lg border-2 border-green-100 overflow-hidden">
+                <canvas id="simCanvas" class="w-full h-full block"></canvas>
+                
+                <!-- Overlay Label -->
+                <div id="stateLabel" class="absolute top-4 left-4 bg-white/90 px-3 py-1 rounded-full text-sm font-semibold shadow-sm text-green-800 backdrop-blur-sm">
+                    Solid State
+                </div>
+            </div>
+
+            <!-- Temperature Control -->
+            <div class="bg-white p-4 rounded-xl shadow-md border border-green-50">
+                <div class="flex justify-between mb-2">
+                    <label class="font-semibold text-gray-700 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+                        </svg>
+                        Temperature (Heat Energy)
+                    </label>
+                    <span id="tempValue" class="text-red-600 font-bold">Low</span>
+                </div>
+                <input type="range" id="tempSlider" min="0" max="100" value="20" class="w-full">
+                <p class="text-xs text-gray-500 mt-2">Heating particles increases their Kinetic Energy, making them move faster and overcome attraction forces.</p>
+            </div>
+        </div>
+
+        <!-- Right Column: Controls & Theory -->
+        <div class="w-full md:w-80 flex flex-col gap-4">
+            
+            <!-- State Selectors -->
+            <div class="bg-white p-5 rounded-xl shadow-md border border-green-50">
+                <h3 class="font-semibold text-gray-700 mb-3">Select State of Matter:</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setMode('solid')" id="btn-solid" class="control-btn active px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium bg-gray-50 hover:bg-gray-100">Solid</button>
+                    <button onclick="setMode('liquid')" id="btn-liquid" class="control-btn px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium bg-gray-50 hover:bg-gray-100">Liquid</button>
+                    <button onclick="setMode('gas')" id="btn-gas" class="control-btn px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium bg-gray-50 hover:bg-gray-100">Gas</button>
+                </div>
+            </div>
+
+            <!-- Theory Card -->
+            <div class="bg-green-50 p-5 rounded-xl border border-green-100 flex-grow">
+                <h3 class="font-bold text-green-800 mb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Observations
+                </h3>
+                <ul class="text-sm space-y-3 text-gray-700" id="infoText">
+                    <!-- Dynamic content will go here -->
+                </ul>
+            </div>
+
+            <!-- Key Characteristics Summary -->
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <h4 class="font-bold text-blue-800 text-sm mb-2">Key Characteristics of Particles:</h4>
+                <ul class="list-disc pl-4 text-xs text-blue-900 space-y-1">
+                    <li>Particles have space between them.</li>
+                    <li>Particles are continuously moving.</li>
+                    <li>Particles attract each other.</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t p-4 text-center text-sm text-gray-500 mt-auto">
+        Made with <span class="text-red-500">&hearts;</span> for Science Students.
+    </footer>
+
+    <script>
+        // --- Configuration & State ---
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const tempSlider = document.getElementById('tempSlider');
+        const tempValue = document.getElementById('tempValue');
+        const stateLabel = document.getElementById('stateLabel');
+        const infoText = document.getElementById('infoText');
+
+        let mode = 'solid'; // solid, liquid, gas
+        let particles = [];
+        let width, height;
+        let animationId;
+        
+        // Physics constants (will vary by mode)
+        let config = {
+            particleCount: 80,
+            radius: 6,
+            gravity: 0,
+            friction: 0.9,
+            baseSpeed: 1,
+            attraction: 0,
+            vibration: 0,
+            color: '#15803d'
+        };
+
+        // Resize handling
+        function resize() {
+            // Get the computed style width/height of the container
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            width = canvas.width;
+            height = canvas.height;
+            initParticles(); // Re-initialize on resize to prevent particles getting lost
+        }
+        window.addEventListener('resize', resize);
+
+        // --- Particle Class ---
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                // Origin used for solids to vibrate around
+                this.originX = x;
+                this.originY = y;
+                
+                // Velocity
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * config.baseSpeed;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                
+                this.radius = config.radius;
+            }
+
+            update(tempFactor) {
+                // Apply mode specific physics
+                
+                if (mode === 'solid') {
+                    // Solid: Vibrate around a fixed point
+                    // Heat increases vibration amplitude
+                    const vibrationAmount = config.vibration * (1 + tempFactor * 2);
+                    
+                    // Simple harmonic motion simulation for vibration
+                    this.x = this.originX + (Math.random() - 0.5) * vibrationAmount;
+                    this.y = this.originY + (Math.random() - 0.5) * vibrationAmount;
+                    
+                    // Solids expand slightly when hot
+                    const expansion = tempFactor * 20; 
+                    // Move origin slightly away from center (simple expansion effect)
+                    const dx = this.originX - width/2;
+                    const dy = this.originY - height/2;
+                    // very subtle drift based on expansion
+                } 
+                
+                else if (mode === 'liquid') {
+                    // Liquid: Flow, Gravity, Slide over each other
+                    
+                    // Apply gravity
+                    this.vy += config.gravity;
+                    
+                    // Apply Friction
+                    this.vx *= config.friction;
+                    this.vy *= config.friction;
+                    
+                    // Movement based on temp
+                    // Heat = move faster
+                    const randomMove = (Math.random() - 0.5) * (tempFactor * 2);
+                    this.vx += randomMove;
+                    this.vy += randomMove;
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    // Boundaries
+                    if (this.x + this.radius > width) {
+                        this.x = width - this.radius;
+                        this.vx *= -0.8;
+                    } else if (this.x - this.radius < 0) {
+                        this.x = this.radius;
+                        this.vx *= -0.8;
+                    }
+
+                    if (this.y + this.radius > height) {
+                        this.y = height - this.radius;
+                        this.vy *= -0.6; // Damping on floor
+                    } else if (this.y - this.radius < 0) {
+                        this.y = this.radius;
+                        this.vy *= -0.8;
+                    }
+                } 
+                
+                else if (mode === 'gas') {
+                    // Gas: Free movement, elastic collisions
+                    
+                    // Update speed based on temp
+                    // Normalize velocity vector and multiply by new speed based on temp
+                    let currentSpeed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+                    if (currentSpeed === 0) currentSpeed = 0.1;
+                    
+                    const targetSpeed = config.baseSpeed + (tempFactor * 15); // Huge speed increase for gas
+                    
+                    // Smoothly adjust speed
+                    const speedRatio = targetSpeed / currentSpeed;
+                    // Apply immediately for responsiveness
+                    this.vx *= speedRatio;
+                    this.vy *= speedRatio;
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    // Bounce off walls
+                    if (this.x + this.radius > width) {
+                        this.x = width - this.radius;
+                        this.vx *= -1;
+                    } else if (this.x - this.radius < 0) {
+                        this.x = this.radius;
+                        this.vx *= -1;
+                    }
+
+                    if (this.y + this.radius > height) {
+                        this.y = height - this.radius;
+                        this.vy *= -1;
+                    } else if (this.y - this.radius < 0) {
+                        this.y = this.radius;
+                        this.vy *= -1;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = config.color;
+                ctx.fill();
+                // Shine effect
+                ctx.beginPath();
+                ctx.arc(this.x - 2, this.y - 2, 2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fill();
+            }
+        }
+
+        // --- Setup Functions ---
+
+        function initParticles() {
+            particles = [];
+            const tempFactor = parseInt(tempSlider.value) / 100;
+            
+            if (mode === 'solid') {
+                config.vibration = 2;
+                config.baseSpeed = 0;
+                config.color = '#15803d'; // Green-700
+                
+                // Create a Grid
+                const cols = 10;
+                const rows = 8;
+                const startX = (width - (cols * 25)) / 2;
+                const startY = (height - (rows * 25)) / 2;
+                
+                for(let i=0; i<cols; i++) {
+                    for(let j=0; j<rows; j++) {
+                        particles.push(new Particle(startX + i*25, startY + j*25));
+                    }
+                }
+            } else if (mode === 'liquid') {
+                config.gravity = 0.2; // Gravity exists
+                config.friction = 0.99;
+                config.baseSpeed = 2;
+                config.color = '#0ea5e9'; // Sky-500
+                
+                // Start somewhat random but mostly bottom
+                for(let i=0; i<config.particleCount; i++) {
+                    particles.push(new Particle(Math.random() * width, height - Math.random() * (height/2)));
+                }
+            } else if (mode === 'gas') {
+                config.gravity = 0; // No gravity
+                config.friction = 1; // No friction
+                config.baseSpeed = 2; // Initial slow speed, ramped by temp
+                config.color = '#9333ea'; // Purple-600
+                
+                for(let i=0; i<config.particleCount/1.5; i++) { // Fewer particles in gas usually visualized
+                    particles.push(new Particle(Math.random() * width, Math.random() * height));
+                }
+            }
+            updateText();
+        }
+
+        function updateText() {
+            let html = '';
+            const temp = parseInt(tempSlider.value);
+            
+            if (mode === 'solid') {
+                html += `<li><strong>Space:</strong> Very little space between particles. They are tightly packed.</li>`;
+                html += `<li><strong>Movement:</strong> Particles cannot move freely; they only <strong>vibrate</strong> in fixed positions.</li>`;
+                html += `<li><strong>Attraction:</strong> Force of attraction is <strong>maximum</strong>, holding them together firmly.</li>`;
+                if(temp > 70) html += `<li class="text-red-600 font-semibold mt-2">High Heat: The particles are vibrating violently! If heated enough, they will break free (melt).</li>`;
+            } else if (mode === 'liquid') {
+                html += `<li><strong>Space:</strong> More space than solids, but still close together.</li>`;
+                html += `<li><strong>Movement:</strong> Particles can slide over one another. This allows liquids to flow.</li>`;
+                html += `<li><strong>Attraction:</strong> Force is strong enough to keep them together, but weak enough to let them move.</li>`;
+            } else if (mode === 'gas') {
+                html += `<li><strong>Space:</strong> Large empty spaces between particles.</li>`;
+                html += `<li><strong>Movement:</strong> Moving randomly at very high speeds in all directions.</li>`;
+                html += `<li><strong>Attraction:</strong> Force of attraction is <strong>negligible</strong> (almost zero).</li>`;
+                if(temp > 70) html += `<li class="text-red-600 font-semibold mt-2">High Heat: Kinetic energy is very high causing rapid collisions!</li>`;
+            }
+            infoText.innerHTML = html;
+        }
+
+        function setMode(newMode) {
+            mode = newMode;
+            
+            // Update buttons
+            document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
+            
+            // Update Label
+            stateLabel.textContent = mode.charAt(0).toUpperCase() + mode.slice(1) + " State";
+            
+            initParticles();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Get temperature factor (0 to 1)
+            const tempFactor = parseInt(tempSlider.value) / 100;
+            
+            // Update Temp Label
+            if(tempFactor < 0.33) {
+                tempValue.textContent = "Low (Cold)";
+                tempValue.className = "text-blue-600 font-bold";
+            } else if (tempFactor < 0.66) {
+                tempValue.textContent = "Medium (Warm)";
+                tempValue.className = "text-orange-500 font-bold";
+            } else {
+                tempValue.textContent = "High (Hot)";
+                tempValue.className = "text-red-600 font-bold";
+            }
+
+            particles.forEach(p => {
+                p.update(tempFactor);
+                p.draw();
+            });
+
+            // Handle Liquid "Clumping" simply by resolving overlaps roughly
+            if (mode === 'liquid') {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p1 = particles[i];
+                        const p2 = particles[j];
+                        const dx = p1.x - p2.x;
+                        const dy = p1.y - p2.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const minDist = p1.radius + p2.radius;
+
+                        if (dist < minDist) {
+                            // Simple repulsion to simulate volume
+                            const angle = Math.atan2(dy, dx);
+                            const force = 0.5; // push strength
+                            
+                            p1.vx += Math.cos(angle) * force;
+                            p1.vy += Math.sin(angle) * force;
+                            p2.vx -= Math.cos(angle) * force;
+                            p2.vy -= Math.sin(angle) * force;
+                        }
+                    }
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // --- Initialization ---
+        tempSlider.addEventListener('input', updateText);
+        
+        // Initial setup
+        resize(); // Sets width/height and calls initParticles
+        animate();
+
+    </script>
+</body>
+</html>
